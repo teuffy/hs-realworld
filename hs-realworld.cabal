@@ -1,0 +1,71 @@
+name:                             hs-realworld
+version:                          0.1.0.0
+synopsis:                         Real World
+description:                      Please see README.md
+homepage:                         https://github.com/rcook/hs-realworld#readme
+license:                          MIT
+license-file:                     LICENSE
+author:                           Richard Cook
+maintainer:                       rcook@rcook.org
+copyright:                        2017 Richard Cook
+category:                         Web
+build-type:                       Simple
+extra-source-files:               README.md
+cabal-version:                    >= 1.10
+
+source-repository head
+  type:                           git
+  location:                       https://github.com/rcook/hs-realworld.git
+
+library
+  default-language:               Haskell2010
+  ghc-options:                    -W -Wall -fwarn-incomplete-patterns -fwarn-unused-imports
+  hs-source-dirs:                 src
+  exposed-modules:                RealWorld
+  build-depends:                  aeson
+                                , base >= 4.7 && < 5
+
+executable hs-realworld-server
+  default-language:               Haskell2010
+  ghc-options:                    -threaded -rtsopts -with-rtsopts=-N -W -Wall -fwarn-incomplete-patterns -fwarn-unused-imports
+  hs-source-dirs:                 app
+  main-is:                        Main.hs
+  other-modules:                  RealWorldServer
+                                , RealWorldServer.API
+                                , RealWorldServer.APIApp
+                                , RealWorldServer.CommandLine
+                                , RealWorldServer.StaticApp
+                                , RealWorldServer.Types
+                                , RealWorldServer.VersionInfo
+  build-depends:                  base >= 4.7 && < 5
+                                , bytestring
+                                , hs-realworld
+                                , http-types
+                                , mtl
+                                , optparse-applicative
+                                , servant
+                                , servant-server
+                                , template-haskell
+                                , vcs-revision
+                                , wai
+                                , wai-logger
+                                , warp
+
+test-suite hs-realworld-doctest
+  type:                           exitcode-stdio-1.0
+  default-language:               Haskell2010
+  ghc-options:                    -threaded -rtsopts -with-rtsopts=-N -W -Wall -fwarn-incomplete-patterns -fwarn-unused-imports
+  hs-source-dirs:                 doctest
+  main-is:                        Main.hs
+  build-depends:                  Glob
+                                , base >= 4.7 && < 5
+                                , doctest
+
+test-suite hs-realworld-spec
+  type:                           exitcode-stdio-1.0
+  default-language:               Haskell2010
+  ghc-options:                    -threaded -rtsopts -with-rtsopts=-N -W -Wall -fwarn-incomplete-patterns -fwarn-unused-imports
+  hs-source-dirs:                 spec
+  main-is:                        Spec.hs
+  build-depends:                  base >= 4.7 && < 5
+                                , hspec
