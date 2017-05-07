@@ -1,13 +1,7 @@
 module RealWorld
-    ( Email (..)
-    , Password (..)
-    , Token (..)
-    , UserName (..)
+    ( module RealWorld.Funcs
+    , module RealWorld.Types
     ) where
 
-import           Data.Text
-
-newtype Email = Email { unEmail :: String }
-newtype Password = Password { unPassword :: String }
-newtype Token = Token { unToken :: Text }
-newtype UserName = UserName { unUserName :: Text }
+import           RealWorld.Funcs
+import           RealWorld.Types
