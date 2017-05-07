@@ -27,22 +27,13 @@ import qualified Web.JWT as JWT
 secret :: JWT.Secret
 secret = JWT.secret "secret"
 
-tokenPrefix :: Text
-tokenPrefix = "Token "
-
-bearerPrefix :: Text
-bearerPrefix = "Bearer "
-
-remainderAfterPrefix :: Text -> Text -> Maybe Text
-remainderAfterPrefix prefix s
-    | prefix `Text.isPrefixOf` s = Just (Text.drop (Text.length prefix) s)
-    | otherwise = Nothing
-
 authToken :: Maybe Text -> Maybe Token
 authToken (Just s) = Token <$>
-    case remainderAfterPrefix tokenPrefix s of
-        Nothing -> remainderAfterPrefix bearerPrefix s
+    case removeTokenPrefix "Token" s of
+        Nothing -> removeTokenPrefix "Bearer" s
         result -> result
+    where
+        removeTokenPrefix prefix = removePrefix (prefix `Text.append` " ")
 authToken _ = Nothing
 
 withConduitDB :: Action IO a -> IO a

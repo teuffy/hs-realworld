@@ -24,6 +24,7 @@ library
   exposed-modules:                RealWorld
                                 , RealWorld.Funcs
                                 , RealWorld.Types
+                                , RealWorld.Util
   build-depends:                  aeson
                                 , base >= 4.7 && < 5
                                 , text
