@@ -1,3 +1,6 @@
 [submodule "_frontend"]
 	path = _frontend
 	url = git@github.com:rcook/react-redux-realworld-example-app.git
+[submodule "_backend"]
+	path = _backend
+	url = git@github.com:rcook/node-express-realworld-example-app.git
