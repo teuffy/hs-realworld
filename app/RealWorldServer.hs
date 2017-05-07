@@ -1,6 +1,7 @@
 module RealWorldServer
     ( module RealWorldServer.API
     , module RealWorldServer.APIApp
+    , module RealWorldServer.AuthToken
     , module RealWorldServer.CommandLine
     , module RealWorldServer.DB
     , module RealWorldServer.Login
@@ -13,6 +14,7 @@ module RealWorldServer
 
 import           RealWorldServer.API
 import           RealWorldServer.APIApp
+import           RealWorldServer.AuthToken
 import           RealWorldServer.CommandLine
 import           RealWorldServer.DB
 import           RealWorldServer.Login

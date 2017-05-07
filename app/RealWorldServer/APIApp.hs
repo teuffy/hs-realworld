@@ -15,6 +15,7 @@ import           Network.Wai.Handler.Warp
 import           Network.Wai.Logger
 import           RealWorld
 import           RealWorldServer.API
+import           RealWorldServer.AuthToken
 import           RealWorldServer.DB
 import           RealWorldServer.Login
 import           RealWorldServer.ProxyApp
@@ -56,21 +57,6 @@ userHandler (Config _ _ secret) mbToken = do
                         Nothing -> throwError err401
                         Just (UserModel _ userName email) ->
                             return $ addHeader "*" (UserResponseModel userName email token)
-
-decodeString :: Value -> Maybe Text
-decodeString (String x) = Just x
-decodeString _ = Nothing
-
-decodeAuthToken :: JWT.Secret -> Token -> Maybe (ObjectId, Text)
-decodeAuthToken secret (Token t) = do
-    jwt <- JWT.decodeAndVerifySignature secret t
-    let m = JWT.unregisteredClaims $ JWT.claims jwt
-    objIdTextValue <- Map.lookup "id" m
-    objIdText <- decodeString objIdTextValue
-    objId <- parseObjectId objIdText
-    userNameValue <- Map.lookup "username" m
-    userName <- decodeString userNameValue
-    return $ (objId, userName)
 
 loginHandler :: Config -> LoginRequestModel -> APIResponse LoginResponse
 loginHandler (Config _ _ secret) (LoginRequestModel email _) = do
