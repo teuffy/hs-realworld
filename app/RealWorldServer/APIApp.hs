@@ -24,9 +24,6 @@ import           RealWorldServer.User
 import           Servant
 import qualified Web.JWT as JWT
 
-secret :: JWT.Secret
-secret = JWT.secret "secret"
-
 authToken :: Maybe Text -> Maybe Token
 authToken (Just s) = Token <$>
     case removeTokenPrefix "Token" s of
@@ -39,10 +36,10 @@ authToken _ = Nothing
 withConduitDB :: Action IO a -> IO a
 withConduitDB = withCollection "conduit"
 
-server :: ApacheLogger -> Server API
-server logger =
+server :: Config -> ApacheLogger -> Server API
+server config logger =
     userHandler
-    :<|> loginHandler
+    :<|> loginHandler config
     :<|> staticApp logger
 
 userHandler :: Maybe Text -> APIResponse UserResponse
@@ -61,8 +58,8 @@ userHandler mbToken = do
                 Just (UserModel _ userName email) ->
                     return $ addHeader "*" (UserResponseModel userName email token)
 
-loginHandler :: LoginRequestModel -> APIResponse LoginResponse
-loginHandler (LoginRequestModel email _) = do
+loginHandler :: Config -> LoginRequestModel -> APIResponse LoginResponse
+loginHandler (Config _ _ secret) (LoginRequestModel email _) = do
     mbUser <- liftIO $ withConduitDB (findUser email)
     case mbUser of
         Nothing -> throwError err401
@@ -82,10 +79,10 @@ apiProxy = Proxy
 
 apiApp :: Config -> ApacheLogger -> Manager -> Application
 apiApp config logger manager = serve apiProxy
-    (server logger :<|> proxyApp config manager)
+    (server config logger :<|> proxyApp config manager)
 
 runApp :: Config -> IO ()
-runApp config@(Config port _) = withStdoutLogger $ \logger -> do
+runApp config@(Config port _ _) = withStdoutLogger $ \logger -> do
     let settings = setPort port $ setLogger logger defaultSettings
     manager <- newManager defaultManagerSettings
     runSettings settings (apiApp config logger manager)

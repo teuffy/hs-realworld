@@ -1,9 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module RealWorldServer.CommandLine (parseCommand) where
 
 import           Network.Wai.Handler.Warp
 import           Options.Applicative
 import           RealWorldServer.Types
 import           RealWorldServer.VersionInfo
+import           Web.JWT (Secret, secret)
 
 portP :: Parser Port
 portP = option auto
@@ -20,8 +23,18 @@ proxiedPortP = option auto
     <> metavar "PROXIEDPORT"
     <> help "Proxied port")
 
+secretP :: Parser Secret
+secretP = secret <$> option auto
+    (long "secret"
+    <> value "secret"
+    <> metavar "SECRET"
+    <> help "Secret")
+
 configP :: Parser Config
-configP = Config <$> portP <*> proxiedPortP
+configP = Config
+    <$> portP
+    <*> proxiedPortP
+    <*> secretP
 
 serverCommandP :: Parser Command
 serverCommandP = ServerCommand <$> configP
