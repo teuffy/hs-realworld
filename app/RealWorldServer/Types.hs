@@ -7,4 +7,4 @@ import           Network.Wai.Handler.Warp
 
 data Command = ServerCommand Config | VersionCommand
 
-data Config = Config Port
+data Config = Config Port Port

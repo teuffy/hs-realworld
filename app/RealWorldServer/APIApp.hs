@@ -1,11 +1,15 @@
+{-# LANGUAGE TypeOperators #-}
+
 module RealWorldServer.APIApp (runApp) where
 
 import           Control.Monad.Except
+import           Network.HTTP.Client (Manager, defaultManagerSettings, newManager)
 import           Network.Wai
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Logger
 import           RealWorld
 import           RealWorldServer.API
+import           RealWorldServer.ProxyApp
 import           RealWorldServer.StaticApp
 import           RealWorldServer.Types
 import           Servant
@@ -20,13 +24,15 @@ server state@(AppState users) logger =
     :<|> return users
     :<|> staticApp logger
 
-apiProxy :: Proxy API
+apiProxy :: Proxy (API :<|> Raw)
 apiProxy = Proxy
 
-apiApp :: AppState -> ApacheLogger -> Application
-apiApp state logger = serve apiProxy (server state logger)
+apiApp :: Config -> AppState -> ApacheLogger -> Manager -> Application
+apiApp config state logger manager = serve apiProxy
+    (server state logger :<|> proxyApp config manager)
 
 runApp :: Config -> AppState -> IO ()
-runApp (Config port) state = withStdoutLogger $ \logger -> do
+runApp config@(Config port _) state = withStdoutLogger $ \logger -> do
     let settings = setPort port $ setLogger logger defaultSettings
-    runSettings settings (apiApp state logger)
+    manager <- newManager defaultManagerSettings
+    runSettings settings (apiApp config state logger manager)

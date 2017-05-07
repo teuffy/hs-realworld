@@ -13,8 +13,15 @@ portP = option auto
     <> metavar "PORT"
     <> help "Port")
 
+proxiedPortP :: Parser Port
+proxiedPortP = option auto
+    (long "proxied-port"
+    <> value 4567
+    <> metavar "PROXIEDPORT"
+    <> help "Proxied port")
+
 configP :: Parser Config
-configP = Config <$> portP
+configP = Config <$> portP <*> proxiedPortP
 
 serverCommandP :: Parser Command
 serverCommandP = ServerCommand <$> configP

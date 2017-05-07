@@ -34,12 +34,15 @@ executable hs-realworld-server
                                 , RealWorldServer.API
                                 , RealWorldServer.APIApp
                                 , RealWorldServer.CommandLine
+                                , RealWorldServer.ProxyApp
                                 , RealWorldServer.StaticApp
                                 , RealWorldServer.Types
                                 , RealWorldServer.VersionInfo
   build-depends:                  base >= 4.7 && < 5
                                 , bytestring
                                 , hs-realworld
+                                , http-client
+                                , http-reverse-proxy
                                 , http-types
                                 , mtl
                                 , optparse-applicative
