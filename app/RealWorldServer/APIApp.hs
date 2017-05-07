@@ -4,8 +4,6 @@
 module RealWorldServer.APIApp (runApp) where
 
 import           Control.Monad.Except
-import           Data.Aeson
-import qualified Data.Map as Map
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Database.MongoDB hiding (String, Value)
@@ -23,7 +21,6 @@ import           RealWorldServer.StaticApp
 import           RealWorldServer.Types
 import           RealWorldServer.User
 import           Servant
-import qualified Web.JWT as JWT
 
 authToken :: Maybe Text -> Maybe Token
 authToken (Just s) = Token <$>
@@ -65,14 +62,8 @@ loginHandler (Config _ _ secret) (LoginRequestModel email _) = do
         Nothing -> throwError err401
         Just user -> return $ addHeader "*" (mkResponseModel user)
     where
-        mkResponseModel user@(UserModel _ userName_ email_) =
-            LoginResponseModel userName_ email_ (mkAuthToken user)
-        mkAuthToken (UserModel objId_ userName_ _) = Token $ JWT.encodeSigned JWT.HS256 secret JWT.def
-            { JWT.unregisteredClaims = Map.fromList
-                [ ("id", String (objectIdText objId_))
-                , ("username", String (unUserName userName_))
-                ]
-            }
+        mkResponseModel (UserModel objId_ userName_ email_) =
+            LoginResponseModel userName_ email_ (encodeAuthToken secret (objId_, userName_))
 
 apiProxy :: Proxy (API :<|> Raw)
 apiProxy = Proxy

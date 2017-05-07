@@ -2,6 +2,7 @@
 
 module RealWorldServer.AuthToken
     ( decodeAuthToken
+    , encodeAuthToken
     ) where
 
 import           Data.Aeson
@@ -16,13 +17,21 @@ decodeString :: Value -> Maybe Text
 decodeString (String x) = Just x
 decodeString _ = Nothing
 
-decodeAuthToken :: Secret -> Token -> Maybe (ObjectId, Text)
-decodeAuthToken secret (Token t) = do
-    jwt <- decodeAndVerifySignature secret t
+decodeAuthToken :: Secret -> Token -> Maybe (ObjectId, UserName)
+decodeAuthToken secret_ (Token t) = do
+    jwt <- decodeAndVerifySignature secret_ t
     let m = unregisteredClaims $ claims jwt
     objIdTextValue <- Map.lookup "id" m
     objIdText <- decodeString objIdTextValue
     objId <- parseObjectId objIdText
     userNameValue <- Map.lookup "username" m
-    userName <- decodeString userNameValue
+    userName <- UserName <$> decodeString userNameValue
     return $ (objId, userName)
+
+encodeAuthToken :: Secret -> (ObjectId, UserName) -> Token
+encodeAuthToken secret_ (objId, userName) = Token $ encodeSigned HS256 secret_ def
+    { unregisteredClaims = Map.fromList
+        [ ("id", String (objectIdText objId))
+        , ("username", String (unUserName userName))
+        ]
+    }
