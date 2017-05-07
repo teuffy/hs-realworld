@@ -8,7 +8,8 @@ module RealWorldServer.DB.Funcs
     ) where
 
 import           Control.Exception
-import           Data.Text
+import           Data.Text (Text)
+import qualified Data.Text as Text
 import           Database.MongoDB
 import           RealWorld
 import           RealWorldServer.DB.Types
@@ -22,11 +23,11 @@ findUser key = do
         (UserName $ at "username" doc)
         (Email $ at "email" doc)
 
-parseObjectId :: String -> Maybe ObjectId
-parseObjectId = readMaybe
+parseObjectId :: Text -> Maybe ObjectId
+parseObjectId = readMaybe . Text.unpack
 
 objectIdText :: ObjectId -> Text
-objectIdText = pack . show
+objectIdText = Text.pack . show
 
 withCollection :: Text -> Action IO a -> IO a
 withCollection collectionName action = bracket

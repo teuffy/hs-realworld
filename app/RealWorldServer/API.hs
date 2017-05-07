@@ -22,6 +22,6 @@ type UserHandler = Get '[JSON] UserResponse
 type UserResponse = (Headers '[Header "Access-Control-Allow-Origin" Text] UserResponseModel)
 
 type API =
-    "api-not-implemented-yet" :> "user" :> Header "Authorization" Text :> UserHandler
+    "api" :> "user" :> Header "Authorization" Text :> UserHandler
     :<|> "api" :> "users" :> "login" :> ReqBody '[JSON] LoginRequestModel :> LoginHandler
     :<|> "static" :> Raw

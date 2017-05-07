@@ -8,7 +8,7 @@ import           Data.Aeson
 import qualified Data.Map as Map
 import           Data.Text (Text)
 import qualified Data.Text as Text
-import           Database.MongoDB hiding (String)
+import           Database.MongoDB hiding (String, Value)
 import           Network.HTTP.Client (Manager, defaultManagerSettings, newManager)
 import           Network.Wai hiding (responseStatus)
 import           Network.Wai.Handler.Warp
@@ -38,25 +38,39 @@ withConduitDB = withCollection "conduit"
 
 server :: Config -> ApacheLogger -> Server API
 server config logger =
-    userHandler
+    userHandler config
     :<|> loginHandler config
     :<|> staticApp logger
 
-userHandler :: Maybe Text -> APIResponse UserResponse
-userHandler mbToken = do
+userHandler :: Config -> Maybe Text -> APIResponse UserResponse
+userHandler (Config _ _ secret) mbToken = do
     case authToken mbToken of
         Nothing -> throwError err401
         Just token -> do
-            -- TODO: Validate token
-
-            -- TODO: Extract object ID etc.
-            let Just objId = parseObjectId "xxx"
-
-            mbUser <- liftIO $ withConduitDB (findUser objId)
-            case mbUser of
+            case decodeAuthToken secret token of
                 Nothing -> throwError err401
-                Just (UserModel _ userName email) ->
-                    return $ addHeader "*" (UserResponseModel userName email token)
+                Just (objId, _) -> do
+                    liftIO $ print objId
+                    mbUser <- liftIO $ withConduitDB (findUser objId)
+                    case mbUser of
+                        Nothing -> throwError err401
+                        Just (UserModel _ userName email) ->
+                            return $ addHeader "*" (UserResponseModel userName email token)
+
+decodeString :: Value -> Maybe Text
+decodeString (String x) = Just x
+decodeString _ = Nothing
+
+decodeAuthToken :: JWT.Secret -> Token -> Maybe (ObjectId, Text)
+decodeAuthToken secret (Token t) = do
+    jwt <- JWT.decodeAndVerifySignature secret t
+    let m = JWT.unregisteredClaims $ JWT.claims jwt
+    objIdTextValue <- Map.lookup "id" m
+    objIdText <- decodeString objIdTextValue
+    objId <- parseObjectId objIdText
+    userNameValue <- Map.lookup "username" m
+    userName <- decodeString userNameValue
+    return $ (objId, userName)
 
 loginHandler :: Config -> LoginRequestModel -> APIResponse LoginResponse
 loginHandler (Config _ _ secret) (LoginRequestModel email _) = do
