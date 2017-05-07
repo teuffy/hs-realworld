@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+script_dir=$(cd $(dirname $0); pwd -P)
+repo_dir=$(dirname $script_dir)
+
+cd $repo_dir
+stack exec -- \
+    hs-realworld-server \
+    --port 3334
