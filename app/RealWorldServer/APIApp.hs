@@ -8,7 +8,8 @@ import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Database.MongoDB hiding (String, Value)
 import           Network.HTTP.Client (Manager, defaultManagerSettings, newManager)
-import           Network.Wai hiding (responseStatus)
+import           Network.HTTP.Types
+import           Network.Wai
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Logger
 import           RealWorld
@@ -53,14 +54,14 @@ userHandler (Config _ _ secret) mbToken = do
                     case mbUser of
                         Nothing -> throwError err401
                         Just (UserModel _ userName email) ->
-                            return $ addHeader "*" (UserResponseModel userName email token)
+                            return $ UserResponseModel userName email token
 
 loginHandler :: Config -> LoginRequestModel -> APIResponse LoginResponse
 loginHandler (Config _ _ secret) (LoginRequestModel email _) = do
     mbUser <- liftIO $ withConduitDB (findUser email)
     case mbUser of
         Nothing -> throwError err401
-        Just user -> return $ addHeader "*" (mkResponseModel user)
+        Just user -> return $ mkResponseModel user
     where
         mkResponseModel (UserModel objId_ userName_ email_) =
             LoginResponseModel userName_ email_ (encodeAuthToken secret (objId_, userName_))
@@ -76,4 +77,15 @@ runApp :: Config -> IO ()
 runApp config@(Config port _ _) = withStdoutLogger $ \logger -> do
     let settings = setPort port $ setLogger logger defaultSettings
     manager <- newManager defaultManagerSettings
-    runSettings settings (apiApp config logger manager)
+    runSettings settings (cors $ apiApp config logger manager)
+
+cors :: Middleware
+cors app req = (case pathInfo req of
+    ["api", "user"] -> modifyResponse addCorsHeaders
+    ["api", "users", "login"] -> modifyResponse addCorsHeaders
+    _ -> id) app req
+
+addCorsHeaders :: Response -> Response
+addCorsHeaders resp
+    | responseStatus resp == status200 = mapResponseHeaders (("Access-Control-Allow-Origin", "*") :) resp
+    | otherwise = resp

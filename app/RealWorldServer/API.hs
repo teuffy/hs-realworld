@@ -17,9 +17,9 @@ import           Servant
 
 type APIResponse a = ExceptT ServantErr IO a
 type LoginHandler = Post '[JSON] LoginResponse
-type LoginResponse = (Headers '[Header "Access-Control-Allow-Origin" Text] LoginResponseModel)
+type LoginResponse = LoginResponseModel
 type UserHandler = Get '[JSON] UserResponse
-type UserResponse = (Headers '[Header "Access-Control-Allow-Origin" Text] UserResponseModel)
+type UserResponse = UserResponseModel
 
 type API =
     "api" :> "user" :> Header "Authorization" Text :> UserHandler
