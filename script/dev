@@ -4,9 +4,19 @@ IFS=$'\n\t'
 
 script_dir=$(cd $(dirname $0); pwd -P)
 repo_dir=$(dirname $script_dir)
+env_path=$repo_dir/.env
+
+if [ -e $env_path ]; then
+    temp_ifs=$IFS
+    IFS=$' '
+    export $(cat $env_path | xargs)
+    IFS=$temp_ifs
+fi
+
+#SOME_VAR=${SOME_VAR:-default}
 
 cd $repo_dir
 stack exec -- \
     hs-realworld-server \
-    --port 3334 \
-    --proxied-port 3000
+    --port $HS_REALWORLD_API_PORT \
+    --proxied-port $HS_REALWORLD_BACKEND_PORT
